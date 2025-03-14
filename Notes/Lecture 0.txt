@@ -1,0 +1,149 @@
+System
+----
+- a set of interconnected components that have some expected behavior -> via an interface 
+- we want to achieve fastest processing time -> speed 
+
+There are some trade-offs to speed:
+-power consumption 
+-speed 
+-space
+
+Computer System
+----
+4 main components:
+- hardware - basic resources of our systems
+- the OS - controls and coordinates how to use resources for an application 
+- applications - compilers, web browers, discord
+- users
+
+So, what is an operating system?
+- software that runs in kernel-mode (can sometimes not be true)
+- tries to abstract resources from the messy hardware
+- uses the messy hardware to manage processes 
+- *abstraction* is how it manages the complexity of hardware 
+- example : storing a file on secondary sotrage requires the use of driver (this is a layer of abstraction -> the driver)
+
+3 main objectives
+- convience - make the computer easier to use 
+- efficency - use resources in an efficient manner 
+- ability to evolve - the OS should be able to improve on new functionality 
+
+Behaviors to achieve goals
+- acts a referee - manages resources -> CPU, memory, disks, network
+- illusionist - every running process has infinite resources (exclusive access to the cpu)
+- glue - offers a set of common services, seperate apps from I/O devices (facilitates communication)
+
+OS has many different services
+- program development - debugging and utilities
+- program execution - instructions and data have to be loaded into main memory to run a program 
+- I/O access - OS handles this via drivers
+- file access - OS must retain links to files 
+- system access - OS maintains security (i.e., logins to a mainframe)
+- error detection and response - OS can detect errors and even mitigate them (log files) 
+- accounting - statistics on resource usage
+        - used for monitoring performmance 
+        - billing
+    
+    * useful for monitoring performmance of processes
+
+
+Evolution of Operating Systems
+----
+Major OS's will evolve on time based on:
+    - Hardware upgrades - add new features -> UNIX systems didn't always have a paging mechanism
+    - New services - Try to add new features via programs or system utilites -> system calls
+    - fixes - any OS has faults. They are discovered and patches, but fixes might also cause faults later down the line (patches)
+
+Evolution of Modern Operating systems
+----
+1. Serial processing (1945-1950)
+    - early computer lacked operating systems, programmers interacted directly with hardware
+    - used light, toggle switches, basic input, and a printer for interaction
+    - error indicated via lights, while output was printed
+    - major problems
+        - scheduling: users reserved computer time using a hardcopy sign-up sheet
+        - setup time: running a job required manually loading compilers, linking programs, and handling tapes
+        
+        * this is why its called serial, the users accessed the computer sequentially
+
+2. Simple Batch System (1955-1965)
+    - Introduction of mainframe, operated in air-condition rooms by professional staff
+    - computer became very expensive, require more efficent utilization
+    - OS introduction to improve efficiency
+    - user no longer accesses computer directly; instead, they used a monitor to control execution
+
+    two drawbacks:
+    - some main memory is now given to the monitor
+    - some processor time is consumed by the monitor 
+
+    both of these are forms of overhead
+
+3. Multiprogrammed Batch Systems (1965-1980)
+    - introduction of IC's (integrated circuits) and multiprogramming
+    - Uniprogramming issue:
+        - Even with automatic job sequencing in simple batch OS, the CPU often remained idle due to slow I/O devices 
+
+    - multipgramming concept:
+            - the OS loads multiple jobs into memory and executes concurrently 
+            - when a process requires I/O, the OS switches to another job, ensuring the CPU and OS remain busy
+        - the number of jobs in memory is few than those stored on the disk 
+
+4. Time-Sharing System (Present day)
+    - multiple users access the system simultaneously through terminals
+    - OS interleaves execution of each user's program in short bursts (time slices, quantum)
+    - utilizes large scale integration (LSI) circuits, primarily made of silicon/semiconductors
+
+    - operating systems are highly complex, balancing:
+        - convience
+        - efficency
+        - evolution/adaptability
+
+    - four major advances in OS development
+        - processes (managing multiple running programs)
+        - memory management (efficient allocation and usuage of memory)
+        - information protection and security (ensuring integrity and user data security)
+        - scheduling and resource management (optimizing system performance and fairness)
+
+Processes
+----
+
+    - the concept of a process is central to the design of operating systems
+
+    - there are many definitions given for the term process:
+        - a program in execution 
+        - an instance of a program on a computer 
+        - the entity that can be assigned to and executed on a processor 
+        - a uit of activity characterized by a single sequential thread of execution, current state, and an associate of system resources 
+
+    - a process consists of three components:
+        - an executable program 
+        - the associated data needed by the program (variables, work space, buffers, etc)
+        - the execution context of the program (or process state) *ESSENTIAL*
+
+    - execution context:
+        - the execution context (process state) is the internal data used by OS to manage the control of processes 
+        - OS keeps this information seperate fron the process, as it contains data not accesible to process itself 
+        - the execution context includes:
+            - processor registers contents, such as the program counter and data of registers 
+            - OS management information, like process priority and I/O event wait status
+        - each process is tracked in a process list, which built and maintained by the OS for efficient process management 
+
+Memory management
+----
+Three key design constraints:
+    1. How much? - more memory allows for more complex application 
+    2. How fast? - memory speed should match processor to avoid conflicts
+    3. How expensive? - cost must be reasonable relative to other system components 
+
+    general trade offs:
+        - faster access time -> higher cost per bit 
+        - greater capacity -> lower cost bit 
+        - greater capacity -> slower access speed 
+
+    overall:
+    - higher speed - lower capacity & higher cost per bit 
+    - cache hierarchy ensures most-used data is kept closer to the CPU
+    - cache hits reduce latency, precent unnessessary request to main memory
+
+    cache hit - if we successfully read sector of memory (within the cache)
+    cache miss - if we do not read a needed sector memory 
