@@ -1,0 +1,98 @@
+Lecture #1 - OS Zoo
+
+Mainframe Operating Systems
+--
+    - widely used in corporate data centers
+    - very easy to expand memory (I.e adding more hard disks)
+    - very good at batch processing 
+        - transactional style processing -> financing or DBS 
+        - time-sharing 
+
+Server Operating System
+--
+    - larger than personal (workstation, or mainframes)
+    - support multiple users over a network 
+    - provides web services, databases, printing
+    - typical operating system: Linux, FreeBSD, Solaris, and Windows Server family 
+
+Personal Computer Operating Systems
+--
+    - widely known 
+    - support multiprogramming and multicore architectures 
+    - good for supporting a single user -> word processing, games, and internet access
+    examples: windows 10/11, macOS, Linux, FreeBSD
+
+Smart Device Operating Systems
+--
+    - computers that we fit in our pockets 
+    - known as smart phones and tablets 
+    - currently by googles android, and apples iOS 
+    - a lot of 3rd paty apps 
+        -> Android 3.5+ million apps 
+        -> iOS 2.2+ million apps 
+
+UNIX Systems
+--
+    - OS for all computers 
+        -> first hint of general hardware and OS's cloud work together
+
+    - Another milestone: programming language C invented and used to wite OS's
+        - programmers not having to write straight assembly 
+
+    - Now OS can handle critical tasks through higher-level programming langauges 
+        Example : memory mangement and scheduling
+
+Linux
+--
+    - Linus Torvalds -> wrote first Linux system -> posted on internet in 1991
+    - key reason for success - free and open source 
+
+
+System calls
+--
+    - mainly concerned with the idea of abstraction (for user)
+    - it also manages resources 
+    - OS has two main functions: 
+        - providing abstraction to user programs 
+        - managing the computer's resources (done automatically)
+
+    if process is running and data needed to read from disk
+        1. execute trap instruction 
+        2. swap control to OS (for the process)
+        3. carries out the system call -> read
+        4. return data from call to user program 
+
+read(fd, buffer, nbytes) // fd is file descriptor 
+
+System Call Examples: 
+fork(), read, mkdir, etc 
+
+Linux Signals
+--
+    - a small message that notifies a process that an event has occured (on the system)
+    - each signal type corresponds to a signal event. kernel handles sending singals to process 
+
+    use "kill -l" to see different possible singles for your OS 
+
+Signal Terminology
+--
+    - Kernal will:
+        - send (or deliver) a signal to a destination process 
+            1. kernel might detect a system event (e.g. divide by zero, termination of child)
+            2. a kill function has been sent to the process (via process id)
+
+            destination process receives a signal
+            -> only happens when forced by the OS (Kernel) -> requires some reaction 
+
+        - usually recieved (or caught) by signal handler
+
+            signal handler actions:
+                - process terminates
+                - process terminates and dumps core 
+                - process stops (suspends) until restarted by another signal (SIGCONT)
+                - process ignore the signal 
+
+                *most of these can be modified 
+                    -> ones that can't be modified are:
+                        - SIGSTOP
+                        - SIGKILL

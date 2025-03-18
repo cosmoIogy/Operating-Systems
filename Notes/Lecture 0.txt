@@ -147,3 +147,106 @@ Three key design constraints:
 
     cache hit - if we successfully read sector of memory (within the cache)
     cache miss - if we do not read a needed sector memory 
+
+Principal of Locality
+--
+- Instructions that are frequently used tend to cluster
+
+Cache Memory
+--
+- Considered invisible to the OS
+- Virtual Memory (OS knows this) also applied to the idea of cache
+- Tries to exploit the idea of locality
+
+L1 cache - similar material to the cpu (closest to cpu)
+- Timing is a big factor with caching (clock cycle)
+
+Cache design
+--
+Main categories:
+    - cache size
+    - number of cache levels
+    - block size 
+    - write policy
+    - replacement algorithm
+    - mapping functions
+
+Cache and Block Size
+--
+    - smaller caches will have an impact on performance
+    - another issue is the idea of block size
+        - known as a unit of exhange between cache and main memory
+
+    - as block size increase (smaller -> larger), the hit ratio will go up and at some point will fall off
+    - as block size goes up more useful data could be bought into the cache
+
+Mapping function 
+--
+    - new block of data that is being added t the cache, how to store it?
+    
+    some constraints:
+    1. when a block reads in another block, some of the data stored needs to be replaced (we need to pick one that may not be used in the future)
+    2. the more complex of a mapping function, the more complex the circuitry
+
+Replacement Algorithm Example
+--
+    LRU - least recently used; if not used in a long time replace it
+
+OS has 5 principal storage management responsibilities:
+    1. Process isolation - OS prevents independent processes from interfacing with each others memory (data and instructions)
+    2. Automatic allocation and management - programs should be dynamically allocated across memory hierarchy. Programmers shouldn't have to deal 
+    directly with memory
+    3. Support of modular programming - programmers should be defining programs modules, and create/destory, and alter the size of modules
+    4. Protection and access control - sharing of memory is protected depending on permissions allowed -> shared address space 
+    5. Long-Term Storage - many applications that are not in use or not used regularly; so stored stored hem in secondary storage 
+
+
+Virtual Memory
+--
+    - even though there are physical limitation, the is tricked into thinking it has unlimited resources 
+    - frees up application from worring about shared address space -> which is done through the use of pages (tables)
+
+Paging 
+--
+    -fixed-block sizes of memory 
+    - a word is referenced by means of a virtual address which is a combination of a page number and an offset
+    - pages can be stored anywhere in main memory -> via a mapping process 
+
+Information Protection and Security
+--
+    Avaliablity - protect the system from interruption
+    Confidentiality - acess to user data only for those with permissions
+    Data integrity - protection against modifiying data 
+    Authenticity - proper verification of users 
+
+Faults (errors)
+--
+    - both software and hardware
+    - have an affect on the reliablity of the system 
+
+    grouped into two categories:
+        - permanent - faults that are always present, ex: disk crashes, software bugs
+
+        - temporary - fault that is not always present
+            two types:
+                - transient -> only occur once 
+                - intermittent -> occurs multiple times 
+
+OS Mechanism for Fault Tolerance
+--
+    Process Isolation:
+        - Processes are kept seperate in terms of memory, file access, and execution flow
+        - prevents faults in one process from affecting others, ensuring system stability
+
+    Concurrency controls:
+        - addresses faults in process communication and cooperation
+        - implements techniques to prevent and recover from issues like deadlock
+
+    Virtual Machines (VMs)
+        - provides strong application isolation, enchancing fault tolerance
+        - can be used for redundancy, where one VMs servers as a backup for another
+
+    Checkpoint and Rollbacks
+        Checkpointing - saves a copy of an applications state in stable storage 
+        - allows recovery from failures by rolling back to previous stable state 
+
