@@ -1,0 +1,242 @@
+Lecture #2 - Processes and Threads
+
+Process
+--
+    - an abstraction of a running program 
+        - one of the oldest concepts
+        - they allow for (pseudo) concurrent operation of the CPU
+        - turns CPU into multiple virtual CPUs
+            - when we have multiple cores, it allows for multiple processes to run 
+        - the first cousin -> threads 
+
+Program vs Process 
+--
+    example:
+        - baking a cake
+        - recipe is a program (algorithm)
+        - person who is baking the cake -> CPU 
+        - cake ingreidents are the input data 
+        - so, the process would be the activity (or action) 
+            - reading the recipe
+            - fetching the ingreidents
+            - baking the cake 
+
+Process Model 
+--
+    - all our runnable software is a number of sequential processes 
+        - each have a virtual CPU 
+            - running in (pseudo) parallel -> switches between different processes -> multiprogramming
+
+Types of multiprogramming:
+    (a) 4 programs in memory (one program counter)
+    (b) 4 programs with 4 different counters -> each process has its own flow
+    (c) 4 programs with interval time on CPU 
+
+Process Elements 
+--
+    - program code -> may be shared by other processes that are executing the same program 
+    - a set of data associated with that code 
+
+Also:
+    - identifier - a unique identifier for a process, to distinguish between other processes
+    - state - determine if a process is executing or not 
+    - priority - how important a process is compared to others 
+    - program counters - address for next instruction 
+    - memory pointers - pointers to a program and data associated; shared memory blocks (address space)
+    - context data - data that is present in registers on the processor while the process is running
+    - I/O status info - includes all I/O devices, outstanding requests (for some data like a file)
+    - accounting information - info about processor time and clock used 
+
+Process Control Structures
+--
+    - a few things that the OS needs to manage and control processes 
+        - know where a process is located 
+        - attributes of a process:
+            - process id 
+            - process state 
+            - etc..
+
+Process Control Block (data structure for OS)
+--
+    - mainly controlled and managed by the OS 
+    - allows for process to be interrupted and resumed 
+    - key tool for multiprogramming/multiprocessing
+    - state -> block/ready, running etc..
+
+    * a process consists of program code and associated plus the PCB
+
+Typical elements of PCB
+--
+    three categories of PCB:
+        - process information 
+        - process state information 
+        - process control information 
+
+Role of PCB
+--
+    - read/modify virtually every module in the OS:
+        - scheduling
+        - resource allocation
+        - interrupt processing
+        - performance monitoring 
+
+    - PCB define the state of OS
+        - indexable via tables created by the OS (using unqiue identifiers)
+
+    
+    - the difficult part is protection not access
+    - two problems: 
+        - a bug in single routine (interrupt handler) could damage PCB (can lead to deadlocks)
+            - improper handling of data, memory corruption, incorrect modification of a register 
+        - change the design PCB - renaming something in PCB (state)
+
+Process Image
+--
+    Process must include:
+        - program to be executed (instructions)
+        - data location -> local and/or global variables 
+        - stack -> keeping track of procedure calls -> instructions 
+
+        * maintained as a contiguous block of memory -> typically stored on secondary storage (disk)
+
+            - although its mainly stored on the disk, part of it needs to be stored in main memory or virtual memory
+
+Elements of the Process Image
+--
+    - user data - modifiable part of user space 
+    - user program - program to be executed 
+    - stack - parameters & calling address all -> system & procedures 
+    - process control block - required by the OS to actually control a process 
+
+Process/Processor Trace 
+--
+    - Trace - characterized behavior of individual process by listing the sequence of instruction that executes for that process
+    - we can characterize behavior of the processor by showing the traces of various processes are interleaved (mixed by altering between) 
+
+Two-State Process Model
+--
+    - OS's principal responsility is controllign the execution of processes -> usually handled by the dispatcher 
+    - we currently have two states:
+        - not running
+        - running 
+    
+    - when a process is generated (new PCB) it enters the not running site (basically avaliable for execution)
+
+    - when in running state it may be interrupted and sent to a not running state 
+
+    - pointer to a PCB in the queue 
+    - for a process to wait in the queue maybe consider it as "waiting" state 
+
+
+Five Process Model
+--
+    - running - process is currenly in execution 
+    - ready - a process is prepared to be executed when given the opportunity 
+    - blocked (waiting) - a process cannot be executed due to some event (i/o operation)
+    - exit - a process releases its pool of resources due to halt or aborted for some reason (could be completed)
+    - new - a process that has been created, has not been loaded into main memory (PCB has been created)
+
+Suspended Process
+--
+    - remember that i/o operations are not the fastest
+        - main factor for suspended 
+            - cost 
+            - large processes that take up space 
+
+        * swapping is needed 
+
+        swapping takes the process out of memoery and stores to disk -> usually enchances performance due to this concept 
+
+        - when a process is suspended and brought out of main memory:
+            - a new process can be admitted
+            - or, and old suspended process can be sent to ready (not always best)
+
+        why not the latter?
+            - is the process waiting on an event (blocked or not?)
+            - has the process been swapped out of main memory 
+            - two types of suspended state:
+                - blocked/suspended - in secondary storage waiting for an event 
+                - ready/suspended - in secondary storage but avaliable for execution as it is loaded into main memory
+
+Characteristics of a Suspended Process
+--
+    1. process is not immediately avaliable for execution
+    2. process may or may not be waiting for an event 
+    3. process was placed in suspended state by an agent; either itself, a parent process, or OS -> for preventing execution 
+    4. process may not be removed from the suspended state until agent exlicitly orders the removal 
+
+Reasons for process suspension 
+--
+    - swapping - provide memory space to bring in a process that is ready/suspended or to allocate more memory for a ready process 
+    
+    - other OS reasons - if it detects or suspects a problem 
+    - interactive user request - user is requesting this action 
+    - timing - if a process is taking more time or held up (taking up CPU time)
+    - parent process request - a parent may want to suspend a process for many different reasons 
+
+Implementation 
+--
+
+
+Process Tables
+--
+    - os needs this table to manage processes 
+    - stores a bunch of information:
+        - stack pointers 
+        - program counters 
+        - memory allocation
+        - state 
+    - without this table the OS may fail 
+    - process table is highly dependent on two other tables -> memory and files 
+
+Memory Tables
+--
+    - keep track of main (real) memory and secondary (virtual) memory 
+    - secondary storage holds most of our processes (depending on state)
+
+I/O Tables 
+--
+    - OS needs a few things:
+        - state of the I/O operation
+            - knowledge on if a process is in a blocked or ready state
+        
+        - location in main memory (source and destination)
+
+File Tables 
+--
+    - location of files on seconday storage (may hold current status (read/write cycle))
+    - OS has little knowledge on files (thats why there is a table to handle it)
+
+Process Creation
+--
+    1. system initalization - when an operating system is booted, typically numerous processes are created
+
+        - foreground processes - processes that users interact with 
+        - background processes - not directly associated with users (have some specific function)
+
+    2. execution of process - creating a system by process 
+        -> opening an application 
+
+    3. a user request to create a process
+        - users runs a specific command 
+        - clicking buttons (causes events) on an application 
+
+    4. initation of batch job - mainly done by mainframes
+        - inventory management 
+        - remotely done (due to clustering)
+
+Steps of Process Creation 
+--
+    1. assign a unique process identifier
+         - a new entry to primary process table (one process per entry)
+
+    2. allocate space for the process. includes elements of process image 
+        - OS needs to know how much space per process (private user address space)
+
+    3. initalize the process control block 
+
+    4. set appropriate linkages
+
+    5. create or expand other data structures 
+        -> accounting data -> performance assessment 
+
