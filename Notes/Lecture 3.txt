@@ -1,0 +1,245 @@
+Lecture #3 - Threads 
+
+Modeling multiprogramming
+--
+
+With multiprogramming we can improve CPU utilization 
+
+There are better models to increase CPU utilization
+
+CPU utilization = (1-p^n)
+    p = i/o wait
+    n = degree of multiprogramming
+
+Only spending a faction of time waiting for I/O
+
+* based on the diagram with a HIGH degree of I/O wait the CPU utilization will be low due to waiting on process (increase in waiting time)
+
+Example:
+suppose that a computer has 8gb of memory, with operating system and its tables taking up 2gb and each user program also taking up 2gb.
+
+1. what is the average CPU utilization with an average 80% I/O wait?
+
+8gb in total.
+2gb for operating system and 2gb for user programs.
+6/2 = 6 is our degree of multiprogramming
+
+CPU utilization = (1-0.8^3) = 49%
+
+2. what ig the pc has 8gb of memory added?
+
+4 new programs and 7 programs can be brought into main memory
+
+1-(0.8^7) = 79* 
+
+3. what about another 8gb of memory?
+
+4 more programs (7+4) = 11
+
+11 programs that can be brought into main memory
+
+1-0.8^11 = 91%
+
+Process and Threads
+--
+
+Two characteristics (process):
+    - resource ownership -> a process includes a virtual address space to hold the process (collection of a program, data, stack,
+    and parts of PCB)
+
+    - scheduling/execution -> a process enters in execution once scheduled and dispatched to do stuff by OS (interleaving of a process)
+
+* these two characteristics are independent, they are treated differently by the OS 
+
+Characteristics of a thread:
+    - considered a lightweight process or miniprocess 
+    - the unit of resource ownership is still referred to as a process or task 
+
+    main reason for having a thread:
+        - multithreading refers to the ability of an OS to support multiple concurrent paths of execution within a single process 
+        - in terms of multithreading a process is defined as the unit of resource allocation and unti of protection 
+
+    
+    other main reasons for threads:
+        1. multiple activies could be going on at once
+        * some activites could be clocked due to I/O operations while others do not require I/O, meanin if we use threads
+        we could execute those that do not need to wait (quasi-parallel)
+
+        2. threads are lighter than process, they are easier to create and destory (so they are fast). In many systems, creating
+        a threads is 10-100 times faster than creating a process 
+
+        3. Performance is terms of memory, it is usually faster than bringing in a whole process (not worrying about CPU
+        bounding)
+
+        4. threads are useful for systems with multiple cpus, allowing for parallelism (its possible)
+
+    - in traditional OS, each process  
+
+single vs multithreaded processes
+--
+
+- for multithreading all threads have a shared address space but each has its own stacks and registers
+
+Process in multithreaded environment
+--
+    - a process is defined as the unit of resource allocation and a unit of protection 
+    - a virtual address space that holds holds the process image 
+    - protected access to processors, other processes, files, and I/O 
+
+One or More Threads in a process 
+--
+    Each thread:
+        - a thread execution state (running, ready, etc)
+        - a saved thread context when running 
+            - every thread has independent program counter operating within a process 
+        - an execution stack 
+        - some per-thread static storage of local variables (registers set)
+        - access to memory and resource of its process (shared address space), shared with all other threads 
+
+Single and Multithreaded process models
+--
+
+kernel stack is used to manage calls/returns while the process is in kernel mode (from a context switch)
+
+Key Benefits of Threads
+--
+
+    - all the threads of a process share the state and resources of that process 
+    
+    They reside in the same address space and have access to the same data 
+        - when one thread alters and item of data in memory, other threads see the result if and when they access that item
+        (user address space)
+        - if one thread opens a file with read privileges, other threads in the process can also read that file 
+
+    Key benefits in performance:
+    1. it takes far less to create a new thread in an existing process than to create a new process (ten times faster, as seen 
+    from studies)
+    2. it takes less to terminate a thread than process 
+    3. it takes less to switch bettween two threads of the same process than to switch processes 
+    4. they can also enhance communication between two executing programs (kernel process)
+ 
+Multicore Programming 
+--
+    Multicore or multiprocessor systems are an opportunity but present challenges:
+        1. dividing activites
+        2. balance 
+        3. data splitting
+        4. data dependency
+        5. testing and debugging 
+
+    parallelism implies a system can perform more than one task simultaneously
+        - LEA is closest to doing this idea in x86
+
+    concurrency supports more than one task making progress (single processor or core scheduling)
+
+Concurrency vs parallelism
+--
+concurrent exeuction on single-core system:
+    - one thread at a time in a queue 
+
+parallelism on a multi-core system:
+    - multiple threads and some are executed at the same time (done by each core)
+
+Threads - Scheduling 
+--
+
+Scheduling is done on a thread basis 
+
+There are several action that affect all threads:
+    - suspend or swapping - swap out all info in the address space in main memory to make room for other processes that
+    need address space 
+        - due to the shared nature of threads, it causes all threads to be put in a blocked/suspended state 
+    - terminating a process means you terminate all threads 
+
+Thraeds Execution States
+--
+
+Three main states of a thread: running, ready, and blocked (similar to a process)
+
+no suspend, due to the fact that if a process is swapped out all of its htreads are swapped out due to the shared address space 
+
+4 operetions are associated with thread state:
+    - spawn - starting another process and continuing with the process that did the spawning
+        - when a process is spawned, a thread for that process is also spawned 
+        - the thread that is spawned can also spawn other threads (stored in stack)
+    
+    - block - when thread needs to wait for an event, it will block (saving its registers, program counter, and stack pointers).
+    processor can swap to another ready thread when this state happens
+
+    - unblock - when the event for which is blocked occurs, the thread is moved to the ready queue
+
+    - finish - when a thread completes, its register context and stacks are deallocated
+
+Thread Synchronization
+--
+
+    - synchronize the activites of various threads so that they do not interfere with each other corrupt data structures 
+
+    - there are many algorithms and techniques to achieve this 
+
+Types of threads
+--
+    There are two types:
+        - ULTs - user-level threads 
+        - KLTs - kernel-level threads (kernel supported threds or lightweight processes)
+
+    Three primary thread libraries:
+        - **POSIX - Pthreads (UNIX systems)
+        - Windows threads 
+        - Java threads 
+
+User-Level Threads
+-- 
+
+- even thought the kernel is not aware of thread acivity, it is still managing process activity 
+
+- when a thread makes a system call, the wholle process is blocked 
+
+Advantages of ULTs 
+--
+1. thread switching does not require kernel mode privileges, due to thread management data strucures being within the 
+user address space 
+
+2. scheduling is application specific, an application can benefit more from different scheduling schemes (such as round-robin
+    while another application may benefit for doing a priority-based scheme)
+
+3. ULTs are OS independent. no changes needed to the underlying kernel to support ULTs. thread libraries handle this through a set
+of application-level functions
+
+Disadvantages of ULTs
+--
+
+In many OSs system calls, cause a blocking state 
+    - since ULTs are considered a process by the kernel, when we switch to kernel mode it blocks all other threads 
+
+In a pure ULT srategy, a multithreaded application canot take advantage of multiprocessing
+    - a kernel assign one process to only one processor at a time, therefore, only a single thread within a process can be
+    executed
+
+Overcoming ULT Disadvantages
+--
+
+Jacketing - purpose is the convert 
+
+All thread management is done by Kernel (user can still atempt to generate threads but kernel has final decision)
+    - no thread management code on the application level 
+    - the kernel maintains context inforamtion for the process as a whole and individual threads within the process (windows is 
+    the example of this approach)
+    - switches between threads requires the kernel 
+    - scheduling is done on a thread basis 
+
+Advantages of KLTs
+--
+
+two principles drawbacks in ULTs are fixed in KLTs:
+    1. the kernel can simulaneously schedule multiple threads from the process or multiple processes 
+    2. if one thread in a process is blocked, the kernel can schedule another thread of the same process to run 
+    3. kernel routines themselves, the kernel itself can be multithreaded 
+
+Disadvantages of KLTs
+--
+
+- principal disadvantage of the KLT approach compared to ULT is that to transfer control from one thread to another within the 
+same process it requires a mode switch (to the kernel)
+
+- this causes a lot of overhead 
