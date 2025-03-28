@@ -243,3 +243,77 @@ Disadvantages of KLTs
 same process it requires a mode switch (to the kernel)
 
 - this causes a lot of overhead 
+
+Thread libraries
+--
+
+-thread library provdes a programmer with an API for creating and managing threads
+- two primary ways of implementing:
+    - library entirely in user space 
+    - kernel level library support by the OS (combined approach)
+
+    contains code for:
+        - creating and destorying threads 
+        - passing messages and data between threads
+        - scheduling thread execution
+        - saving and restoring context 
+
+Pthreads (library)
+--
+
+-may provide either a user-level or kernel-level 
+
+-POSIX (Portable Operating System Interface) stand (IEEE 1003. 1c) API for thread creation and synchronization
+
+-60 different functions that allow creation, killing, and reaping of threads, to share data safely with peers, and notification
+of system state by other threads 
+
+Creating/Terminating a thread 
+--
+//allows for creation of threads 
+
+int pthread_create(pthread_t*tid, pthread_attr_t*attr, func *f, void*arg)
+
+//terminates a thread
+
+
+join a thread (allowing it to run)
+--
+
+//allows for the thread to enter a ready state
+int pthread_join(pthread_t tid, void **thread_return)
+
+//return 0 if OK, and nonzero is there is an error
+
+Fork-Join parallelism
+--
+
+- the parent thread creates (forks) one or more child threads and then waits for the children to terminate and join with it,
+at which the point the parent can retrieve and combine their result
+
+General Algorithm for fork-join strat:
+    
+Task(problem)
+    if problem is small enough
+        solve the problem directly
+    else
+        subtask1 = fork(new Task(subset of problems))
+        subtask2 = fork(new Task(subset of problems))
+
+        result1 = join(subtask1)
+        result2 = join(subtask2)
+
+        return combined results 
+
+
+Semantics of forking:
+
+    there is a small issue with multithreading and forking
+        - there is a question(s): do you copy all threads? or duplicate only the calling threads?
+
+    linux: child process is created with a single thread(only the calling is duplicated)
+    
+    Solaris supports both questions:
+
+    * exec() - will work as normal -> replace the running process including all threads 
+    ** if exect isnt called, the child process should duplicate all threads 

@@ -1,0 +1,24 @@
+Lecture #4 - Multiprocessor, Multicore scheduling 
+
+Classifications of Multiprocessor system:
+
+    - Loosely coupled or distrubuted, or cluster. Consists of a collection of relatively autonomous, each processor having its own
+    main memory and I/O channels
+
+    - Functionally specialized processors: An example is an I/O processor. More specific to only handling I/O functions (services)
+
+    - Tightly coupled multiprocessor: Consists of a set of processors that share a common main memory and are under the intergrated
+    control of an operating system 
+
+Synchronization Granularity and Process 
+-- 
+
+Grain sizes (intervals = instruction):
+    fine - parallelism inherit a single intruction stream (intervals: <20)
+
+    medium - parallel processing or multitasking in a single application (intervals: 20-200)
+
+    coarse - multiprocessing of concurrent processes in multiprogrammed environment (intervals: 200-2000)
+
+    independent - multiple unrelated processes (intervals: not applicable)
+
