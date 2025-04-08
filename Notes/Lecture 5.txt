@@ -1,0 +1,189 @@
+Lecture 5 - Uniprocessor Scheduling
+
+Types of Scheduling
+--
+
+Four types:
+    - long-term scheduling - decision to add to the pool of processes to be executed (gang/load sharing)
+
+    - medium-term scheduling - decision to add the number of processes that are partically or fully in main memory (virtual memory)
+    
+    - ***short term scheduling - decision as to which avaliable process will executed by the processor (UNIPROCESSOR)
+
+    - I/O scheduling - decision as to which processes pending I/O request shall be handled by an abaliable I/O device
+
+Scheduling Criteria
+--
+
+user oriented - performance related 
+    - turnaround time (TAT) - total time from when a process is submitted to when its completed, including both execution time and waitin time for
+    resource 
+
+    - response time - the duration from the submission of requests to beginning of the response in an interactive process 
+
+    - deadlines - when process completion deadline can be set, the main focus of scheduling should be to maximize the percentage of these
+    deadlines that met 
+
+user oriented - other 
+    - predictability - time and csot, should remain consistent regardless of system load 
+
+system oriented - performance related 
+--
+
+- throughput - the number of processes completed per unit of time 
+
+- processor ultilization - the percentage of time the processor is actively busy 
+    - high processor utilization is particularly important expensive shared system as a measure of efficiency
+    - for single-user systems and certain specialized systems may be less crucial compared to the other factors 
+
+system oriented - other
+--
+    - fairness - all processes should be treated equally to prevent any process from experiencing starvation 
+    - enforcing priorities - scheduling policy should prioritize processes based on their assigned importance (give those with higher
+    priorities precedence)
+    - balancing resources - scheduling strategy should aim to keep all system resources optimally busy
+
+long-term scheduler
+--
+    - decides which program to admit for processing
+    - manages the level of multiprogramming (simulatenous program execution)
+        - increasing the number of processes reducess the proportion of time each one runes 
+        - can restrict process admission to ensure equality service for ongoing processes 
+
+    - process decisions:
+        - processes are selected from a queue based on some specific criteria 
+            - consider whether the operating system can handle an additional process
+
+    - chooses jobs based on their arrival order, priority, expected runtime, and I/O needs
+
+medium term
+--
+    - scheduling is part of a swapping function 
+    - the swapping-in decisions is based on the need to manage the degree of multiprogramming 
+    - in system without virtual memory, memory management is crucial; swapping-decisions depends on the memory needs of previously
+    swapped-out process 
+
+short-term scheduling 
+--
+    - acts as the dispatcher 
+    - operates most frequently 
+    - decides which process to run next based on fine-grained criteria 
+    - activated by specific events like:
+        - I/O interrupts 
+        - clock interrupts
+        - signals (e.g., semphore)
+        - operating system calls 
+
+process behavior
+--
+    - nearly all processes alternate with burst of compute with I/O requests (disk or network)
+        - when the system call completes, the cpu computes again until it needs more data, or other requests. some I/O activites can count 
+        as computing 
+
+        - duration of CPU bursts varies from process to process, and from computer to computer system 
+        - as the duration increases, frequency of these longer processes decreases
+            - there are fewer processes that requires long periods of uninterrupted CPU time 
+
+CPU scheduler 
+--
+- selects from a ready and allocates a process to a CPU core 
+    - queue may be ordered in different ways 
+
+- decisions take place when a process:
+    - switches from running to wait state (no choice in terms of scheduling)
+    - switches from running to ready (there is a choice)
+    - switch from waiting to ready (there is a choice)
+    - terminates (no choice in terms of scheduling)
+
+selection function 
+--
+    - determines which process, among the ready processes, to be selected for next execution 
+    - function can be based on priority, resource requirements, or the execution characteristics of the process 
+    - execution characteristics:
+        - w =  time spent in system so far, waiting 
+        - e = time spend executing so far
+        - s = total service time required by the process, including e; usually estimated or supplied by the user 
+
+preemptive and nonpreemtive
+--
+    - preemptive - the process is changing to an interrupt state and has the notion it will resume again 
+
+    - nonpreemtive - once the CPU has been allocated to a process, the process keeps executing until release (completion)
+        1 - by the switching to a wait state 
+        4 - by terminating 
+
+preemptive scheduling and race conditions
+--
+    - preemptive can result in race conditions 
+    - happens a lot when processes want to read/write same data (almost at the same time)
+
+role of dispatcher
+--
+    - gives control of the CPU to the process selected by the CPU scheduler, which involves:
+        - switch context 
+        - switching to user mode 
+        - jumping to the proper location in the user program to restart that program 
+    
+    - dispatch latency - time it takes for the dispatcher to stop one process and start another one
+
+scheduling algorithm goals
+--
+    all systems:
+        fairness - give each process a fair share of the CPU 
+        policy enforcement - seeing that the stated policy is carried out 
+        balance - keeping all parts of the system busy 
+
+    batch systems:
+        throughput - maximize jobs per hour 
+        turnaround time (TAT) - minimize time between submission and termination 
+        CPU utilization - keeping cpu busy at all times 
+
+    interactive systems:
+        response time - respond to requests quickly
+        proportionality - meet users' expectations 
+
+    real-time systemL
+        meet deadlines - avoid losing data 
+        predicatbility - avoid quality degradation in multimedia systems 
+
+scheduling metrics 
+--
+    - cpu ulitzation - keeping the CPU as busy as possible 
+    - throughput - # of processes that complete their execution per time unti (TU)
+    - turnaround time (TAT) - amount of time to execute a particular process 
+    - waiting time (WT) - amount of time a process waiting in the ready queue 
+    - response time - amount of time it takes when a request was submitted until the response is produced
+
+first-come, first-served (FCFS) scheduling - nonpreemptive
+
+process | burst time (TU) | arrival time
+
+p1        24.0              0.0
+p2        3.0               0.0
+p3        3.0               0.0
+
+
+TAT = (completion-arrival)
+wait time = (completion - arrival - burst)
+
+arrival time : summation(TAT-burst)/# of processes
+
+Shortest-Job-First (SJF)
+--
+    - convoy effect (FCFS): short process behind long process (considered CPU bound and many I/O-bound processes)
+
+    SJF is considered pretty optimal
+        - gives minimum average wait time from a given set of processes 
+
+Preemptive version SJF is called shorted-remaining-time-first (SRT/SRTF)
+
+SJF example:
+
+process | burst time (TU) | arrival time 
+
+p1        6.0               0.0
+p2        8.0               2.0
+p3        7.0               4.0
+p4        3.0               5.0
+
+Shortest-remaining-time-first (SRT, preemptive SJF)
