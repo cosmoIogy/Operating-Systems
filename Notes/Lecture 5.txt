@@ -187,3 +187,73 @@ p3        7.0               4.0
 p4        3.0               5.0
 
 Shortest-remaining-time-first (SRT, preemptive SJF)
+- when a smaller (in terms of burst time) comes into queue, current job will be paused if that smaller is smaller than current running 
+
+Determining length of Next CPU burst 
+--
+- can be done by using the length of previous CPU bursts, using exponential averaging 
+
+1. tn = actual length of nth CPU burst 
+2. tn+1 = predicted value for next CPU burst 
+3. alpha: 0 <= alpha <= 1
+4. define: Tn+1 = alpha * tn + (1 - alpha) * Tn
+
+T = predicted 
+t = actual 
+
+Commonly, alpha set to 1/2 = 0.5
+
+Example:
+Calculate the exponential average with T1 = 10 (predicted), alpha = 0.5 and using SJF with previous runs, 6,7,4,__?___, what is T4?
+
+Initally T1=10 and alpha = 0.5 and the runtimes given are 8,7,4.
+- possible ordering because of SJF: 4,7,8 refers to t1,t2,t3 
+
+T2 = alpha * t1 + (1-alpha) * t1 
+    = 0.5  * 4  + (1-0.5)   * 10
+    = 7
+
+Round Robin (RR) -> preemptive 
+--
+- each process is assigned a fixed time slice, called time quantum (q) 
+=> 10-100 milliseconds 
+
+- after is time expires, the process is paused and moved to the end of the queue 
+- each process recieves CPU time in chunks of up to q time units 
+- the maximum wait time for any process is (n-1)*q time units 
+- a timer interrupt is triggered at every quantum to switch to next process in queue 
+- performance impacts:
+    - if q is larger, the behavior resembles FCFS scheduling algorithm
+    - if q is smaller, it must still be significantly larger than the context switch time to avoid excessive overhead 
+
+Process     Burst time
+P1          24.0
+P2          3.0
+P3          3.0 
+
+arrival time  = 0
+q = 4
+
+Time Quantum and Context Switch Time 
+--
+performance of round robin depends on the value of the quantum:
+    - if q is larger, same as FCFS 
+    - if q if smaller, ends up with a lot of context switches 
+
+Priority scheduling -> non preemptive 
+- a priority number is given to each process 
+- CPU is allocated to the process with highest priority 
+- default: smallest integer is equivalent to the highest priority 
+    - we can think SJF is priority scheduling where the priority is the predicted next CPU burst time 
+- problem is equivalent to starvation -> low priority processes may never execute 
+- solution is aging, as time progresses increase the priority of the process 
+
+priority scheduling w/ round robin 
+--
+- run the process with highest priority, after ordering -> FCFS 
+- processes with the same priority -> run in round robin (similar processes run in a preemptive nature)
+
+multilevel queue
+--
+- with priority, have seperate queues for each priority 
+- schedule the process in the higest priority queue 
