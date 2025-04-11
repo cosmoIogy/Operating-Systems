@@ -175,7 +175,7 @@ Shortest-Job-First (SJF)
     SJF is considered pretty optimal
         - gives minimum average wait time from a given set of processes 
 
-Preemptive version SJF is called shorted-remaining-time-first (SRT/SRTF)
+Preemptive version SJF is called shortest-remaining-time-first (SRT/SRTF)
 
 SJF example:
 
