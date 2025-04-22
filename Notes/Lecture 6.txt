@@ -1,0 +1,460 @@
+Lecture #6 - Concurrency-Mutual Exclusion 
+
+Race Condition
+--
+    - occurs when multiple processes or threads read and wite items so that the finals result depends on order of execution 
+
+    Examples: fork-race.c 
+
+    #include <stdio.h>
+    #include <stdlin.h>
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <fcntl.h>
+
+    int main() {
+        char c;
+        pid_t pid;
+
+        int fd = open("test.txt", 0_RDWR);
+        if (fd == -1){
+            perror("error opening the file\n");
+        }
+        read(fd, &c, 1);
+        printf("before the fork %c\n", c);
+
+        pid = fork();
+        if (pid == -1){
+            perror("error fork()\n");
+        }
+        if (pid == 0){ // child
+            read(fd, &c, 1);
+            printf("child: %c\n", c);
+        } else { //parent 
+            read(fd, &c, 1);
+            printf("parent: %c\n", c);
+        }
+        return 0;
+    }
+
+    ex: fork-race-fixed.c
+    #include <stdio.h>
+    #include <stdlin.h>
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <fcntl.h>
+
+    int main(){
+        char c;
+        pid_t pid;
+        
+        int fd = open("test.txt", 0_RDWR);
+        if (fd == -1){
+            perror("error opening the file\n");
+            exit(1);
+        }
+
+        // read first char 
+        if (read(fd, &c, 1) != 1) {
+            perror("error opening the file\n");
+            close(fd);
+            exit(1);
+        }
+        printf("before fork: %c\n", c);
+
+        pid = fork();
+        if (pid == -1){
+            perror("error in forking process");
+            close(fd);
+            exit(1);
+        }
+
+        if (pid == 0) { //child
+            int child_fd = open("test.txt", 0_RDWR);
+            if (child_fd == -1){
+                perror("child error opening the file");
+                exit(1);
+            }
+            if (lseek(child_fd, 1, SEEK_SET) == -1){
+                perror("child lseek error");
+                close(child_fd);
+                exit(1);
+            }
+            if (read(child_fd &c, 1) == 1){
+                printf("Child read: %c\n", c);
+            } else {
+                perror("child read error");
+            }
+            close(child_fd);
+        } else { //parent
+            if (lseek(child_fd, 1, SEEK_SET) == -1){
+                perror("child lseek error");
+                close(child_fd);
+                exit(1);
+        }
+            if (read(fd, &c, 1) == 1){
+                    printf("parent read: %c\n", c);
+            } else {
+                perror ("parent read error");
+            }
+            close(fd);
+        }
+        return 0;
+    }
+
+Concurrency Terms 
+--
+
+Atomic Operation - operations that executes as an indivisble unit, meaning it either completes fully or not at all, with no intermediate state
+visible to other processes 
+
+Critical Section - a part of program that accesses shared resources and must be executed simultaneously by multiple processes 
+
+Deadlock - a situation where two or more processes cannot proceed because each is waiting for the other to take action 
+
+Livelock - a scenario where processes continously change theirs states in response to each other but make no actual progress 
+
+Mutal exclusion - a principle ensuring that when one process accesses a shared resouce, no other process can do so simultaneously
+
+Race condition - a situation where multiple processes access and modify shared data, with the outcome depending on their execution time 
+
+Starvation - a condition where a process is indefinitely denied access to resources because higher-priority processes are continuously favored
+
+
+Critical section problem 
+--
+- a system consists of n proccesses, each having a critical section where shared resources are accessed 
+
+- only one process can be in the critical section at a time to prevent conflicts 
+
+- typically a software issue. the idea is to prevent race conditions and ensure mutal exclusions
+
+- each process must request permissions before entering the critical section (known as the entry section), and finally exit before proceeding
+to remainder section 
+
+while (1){
+    enter section 
+        critical section (manipulate a shared resource in some way)
+    exit section
+        remainder section
+}
+
+exit section - refers to the critical section being done and another thread may now manipulate a shared resources 
+
+remainder section - is code that does not require synchronization and can be executed without holding a lock 
+
+requirements for a solution to critical section problem:
+--
+1. mutual exlusion - only one process can be in its critical section at a time; no two processes should execute their ciritcal section simultaneously
+2. progress - if no process is in the critical section and some processes want to enter, a process must be selected within a finite time to 
+proceed; section cannot be postponed indefinitely
+3. bounded-waiting - a limit must be set on how many times other processes can enter critical section before waiting process gets its turn,
+preventing indefinite blocking (starvation)
+
+software solutions:
+--
+(1) two process solution
+    - load and store operations are assumed to be atomic, meaning they cannot be interrupted 
+    - the processes (P0(i) and P1(i))
+        - the variable (turn) indicates which process is allowed to enter the critical section 
+    - initally, set turn to 0 (i) 
+
+    int turn = i;
+    while (1){
+        while (turn == j); // busy waiting or spin waiting 
+            // critical section 
+        turn = i;
+            // remainder section 
+    } 
+
+does this solution work?
+    - mutual exlusion is preserved 
+        - process only enters critical if its their turn 
+
+    - progress requirement?
+        - no does not satisfy progress requirement, j is stuck waiting -> no access to critical section (based on infinite while loop
+        when turn == j)
+
+    - bounded-waiting requirement? 
+        - no does not satisfy bounded-waiting requiremen 
+        - if one process fails, one process will be permanently blocked 
+
+(2) two process share a vector: 
+    - boolean flag[2];
+    - the flag indicates 
+
+    while (1){
+        while (flag[j]);
+        flag[i] = true // entry point 
+            // critical section 
+        flag[j] = false; // exit point 
+            // remainder section 
+    }
+
+does this solution work?
+    what about these sequence of events:
+        - Pi executes the while loop and finds flag[j] = false 
+        - Pj executes the while loop and finds flag[i] = false 
+            - both Pi and Pj are entered into the critical section 
+
+        due to the above scenario, this solution may not work 
+
+(3) peterson's algorithm 
+        - two process solution: ensure mutual exlusion for two processes 
+        - shared variables:
+            - int turn; // determines whos turn it is to enter critical section 
+            - boolean flag[2]; // indicates if a process is ready to enter critical section 
+
+        - each process set its respective flags turn when it wants to enter 
+        - turn variables determines which process gets priority 
+        - a process can enter critical section only if the other process is not ready (flag = false) or it is its turn
+
+    
+    int turn;
+    bool flag[2];
+
+    while(1){
+        flag[i] = true;
+        turn = j;
+        while (flag[j] && turn == j);
+            /* critical section */
+        flag[i] = false;
+            /* remainder section */
+    }
+
+    Does this work?
+        - mutual exlusion is preserved
+        - progress requirement is satisfied; if no process in critical, one will proceed
+        - bounded-waiting requirement is met; no process is indefinitely blocked 
+
+Petersons Solution and Modern Architecture 
+--
+    - petersons solution is guranteed to work on modern architectures because:
+        - modern processors and compilers reorder operations to optimize performance, potientally breaking the algorithms correctness 
+    
+    - understanding its limitations helps in recognizing race conditions and improving synchronization techniques 
+        - single-threaded execution - unaffected in the order of execution (remains consistent)
+
+        - multi-threaded execution - results in unexpected or inconsistent behavior due to insturction ordering (shuffling)
+
+    examples -> modern architecture 
+
+    two threads that share data:
+        bool flag = false;
+        int x = 0;
+
+        thread 1:
+
+        while(!flag):
+        print(x);
+
+        thread 2:
+
+        x = 100;
+        flag = true;
+
+        what is the expected output? 100
+
+        since the variable x and flag are independent, they could reordered for optimization
+
+        reordered thread 2:
+
+        flag = true;
+        x = 100;
+
+        the output may now be 0 
+
+    memory barrier
+    --
+        - memory models define how a computer manages memory visibility across different processors in multi-threaded environments 
+
+        - types of memory models:
+            - strongly ordered - memory changes by one processor and is immediately visible to all others 
+
+            - weakly ordered - memory changes by one processor may not immediately be visible to all other processors 
+
+        memory barrier - a special instruction that ensures all memory modifications propogated are visible to all processors 
+
+    memory barrier instructions 
+    --
+    purpose: ensure all load and store operations are completed before any future load or store operations 
+
+    effect on instruction reorder:
+        - even if instructions are reordered for optimization, the memory barrier guarantees that all previous stored operations are 
+        completed and visible to other processors before new operations begin 
+
+     thread 1:
+
+        while(!flag):
+        memory_barrier();
+        print(x);
+
+        thread 2:
+
+        x = 100;
+        memory_barrier();
+        flag = true;
+
+concurrency mechanism 
+--
+    - semaphore - an integer value used for signaling among processes 
+    - only three operations:
+        - initialize - zero or positive 
+        - decrement - may result in the blocking of a process 
+        - increment - may result in the unblocking of a process 
+
+    - binary semaphore - a semaphore that takes only the values 0 or 1 
+
+    - mutex - similar to a binary semaphore. major difference is that the process that locks mutex (sets it to 0) must be the one that unblocks 
+    the mutex (sets the value to 1)
+
+    - spinlocks - mutual exlusion mechanism in which a process executes an infinite loop waiting for the value of a lock variable to indicate 
+    avaliablity 
+
+semaphore 
+--
+only way to manipulate is via three operations: 
+    1. initalized to a nonnegative number
+    2. the semWait function decrements a semaphore value when called 
+    3. the semSignal/semPost operation increments semaphore value when called 
+
+if the value is zero:
+    can be considered a blocked state for now, but sometimes this allows to run (decrementing the semaphore causing a negative value)
+        - every new process that called semWait will cause semaphore to continously 
+
+        negative values = number of processes ready to run (stuck in a queue waiting)
+
+    types of semaphore(queue):
+        there are two types for both binary and counting semaphores when talking about a queue: 
+
+
+        - semWait and semSignal opeartions should be implemented as atomic primitives 
+        - can be implemented as software and hardware 
+        - mutual exclusion - only one process may manipulate a semaphore with either a semWait or semSignal operation 
+        - *** for a signal-process system, it is possible to inhibit interrupts for durations of a semWait or semSingal 
+
+Synchronization of Hardware 
+--
+    - many systems do provide hardware support for implementing critical section code 
+
+    - one case is to disable interrupts specifically on a uniprocessor system, stop code from preempting execution 
+        - this is inefficent for multiprocessor systems -> some processors may end up being idle  
+
+    - two different examples of hardware insturctions that allow us to implement critical section concept:
+        - test-and-test 
+        - compare-and-swap 
+
+    ** classified as special hardware instructions 
+        - allow us to to either test and modify 
+
+    test_and_set instruction 
+
+    boolean test_and_set(boolean *target){
+        boolean rv = *target;
+        *target = true;
+        returnn rv;
+    }
+
+    - used to write a variable and read its old value as a single indivisble step 
+        - often used in locking mechanisms for synchronization in concurrent programming 
+
+    - typically executed atomically, meaning if two processes are executing this function at the same time they will do so sequentially
+    - return original value of passed parameter and set the new value of passed param to true 
+
+    could have a shared variable called "lock" init'd to false (mutex) 
+
+    do {
+        while (test_and_set(&lock)); // do nothing 
+        /* critical section */
+        lock = false; 
+        /* remainder section */
+    } while(1); 
+
+    ** busy-waiting or spinlock - process is repeatedly checking to see if the lock is avaliable (cause some load on the CPU) 
+        - main efficient use-case: critical section is short and wait times are expected to be smaller 
+
+compare_and_swap instruction 
+--
+    int compare_and_swap(int *value, int expected, int new_value){
+        int temp = *value;
+        if (*value == expected) *value = new_value;
+        return temp; 
+    }
+
+    - executed atomically 
+    - returns the original value of passed parameter 
+    - it attempts to write new_value into *value but only if current value is the expected value 
+        - it is a critical operation in implementing lock-free data structures and algorithm, as it allows coordination between threads 
+        without the need for mutex locks 
+
+    while (true){
+        while (test_and_set(&lock, 0, 1)); // do nothing
+        /* critical section */
+        lock = false; 
+        /* remainder section */
+    }
+
+    example of synchronization:
+        - producer-consumer synchronization problem 
+        - readers-writes synchronization problem 
+        - dining-philospher synchronization problem 
+
+producer-consumer problem 
+--
+    - producers generate and add data to a shared buffer 
+    - a single consumer removes data from buffer one item at a time 
+    - only one producer or comsumer can access the buffer at any given time 
+
+    the problems:
+    - prevent overfilling - the producer should not add data if the buffer is full 
+    - prevent underflow - the consumer should not remove dat if the buffer is empty 
+
+    stuct sbuf_t{
+        int *buff; // buffer array 
+        int n; // max number of slots 
+        int front;
+        int rear;
+        sem_t mutex; // like a binary semaphore -> 0,1 
+        sem_t slots; // counting semaphore -> 0, ..., n 
+        sem_t items; // counting semaphore -> 0, ..., n 
+    }
+
+    synchronization via semaphore:
+        - mutex initalized to 1 -> ensure mutual exclusion so only one process (producer/consumer) accesses the buffer at a time 
+
+        - items (init'd to 0) -> tracks the number of itme avaliable in the buffer (prevents consumer from removing from an empty buffer)
+
+        - slots (init'd to 0) -> tracks the avaliable slots in the buffer (prevents producers from adding to a full buffer)
+
+    libraries to use: 
+    #include <semaphore.h>
+    #include <unistd.h>
+
+    example of producer process: 
+
+    while(true) {
+        /* produce an item */
+        sem_wait(slots);
+        sem_wait(mutex);
+
+        /* add produced item to the buffer (critical section) */
+
+        sem_post(mutex); // allows access to buffer 
+        sem_post(items); // consumer will wait for this to be incremented to then access the buffer 
+}
+
+ example of consumer process: 
+
+    while(true) {
+        /* produce an item */
+        sem_wait(tems);
+        sem_wait(mutex);
+
+        /* remove an item from the buffer to next_consumed */
+
+        sem_post(mutex); 
+        sem_post(slots); 
+
+        /* consume item in the next consumed */
+}
+
