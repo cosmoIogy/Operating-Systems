@@ -458,3 +458,419 @@ producer-consumer problem
         /* consume item in the next consumed */
 }
 
+Reader-Writers Problem 
+--
+-shared data set 
+    - readers -> only read; they do not modify 
+    - writers -> can read and write
+
+    problem:
+        - multiple readers that are accessing the data simultanesouly 
+        - only one writer can access the data at a time (to prevent inconsistency)
+
+        different implementation prioritize either readers or writers to balance performance or fairness 
+
+        ***some solutions***:
+        - no reader should wait simply because a writer is waiting (favor readers)
+        - a reader that arrives after a write a writer must wait, even if writer is also waiting (favors writing)
+
+        both of these can lead to potiential starvation for a reader/writer (thread being blocked indefinitely)
+
+Reader-writers problem - code 
+--
+
+sem_t w_mutex = 1; // writer mutex 
+sem_t r_mutux = 1; // general reader mutex 
+readcnt = 0; // hold the number of readers 
+
+/* writer process */
+while (true){
+    sem_wait(w_mutex); // decrement 
+
+    /* writing is performed (critical section) */
+
+    sem_post(w_mutex); // increment 
+}
+
+/* reader process */
+while (true){
+    sem_wait(r_mutex);
+    readcnt++;
+    if (readcnt == 1) // first reader 
+        sem_wait(w_mutex);
+    sem_post(r_mutex);
+
+    /* reading is performed */
+
+    sem_wait(r_mutex);
+    readcnt--;
+    if (readcnt == 0); // last reader 
+        sem_post(w_mutex);
+    sem_post(r_mutex);
+}
+
+Dining-Philosphers Problem 
+--
+- trying to 
+
+- N philosphers sit around a table sharing a bowl of rice 
+- They alternate between thinking and eating 
+- They do not communicate with each other 
+
+Rules:
+    - each philospher needs two chopticks to eat 
+    - they pick up chopsticks one at a time and must release both after eating 
+
+Challenges:
+    - Deadlock risk: if all philsophers pick up one chopstick at the same time, no one can eat 
+    - shared resource:
+        - bowl of rice 
+        - chopsticks (represented by semaphore)
+
+    Algorithm:
+
+    - semaphore as solution 
+
+    sem_t chopstick[5]; // -> init to 1
+
+    while(1){
+        sem_wait(chopstick[i]);
+        sem_wait(chopstick[i+1 % 5]);
+
+        /* eat for a while */
+
+        sem_post(chopstick[i]);
+        sem_post(chopstick[i+1 % 5]);
+        
+        /* think for a while */
+    }
+
+    Problems:
+        - it may lead to deadlock, each chopstick is in mutual exclusive state (no two neightbors can eat at the same time) 
+        - what happens if all philosphers try to eat at the same time? 
+            - solution allows for each philosphers left chopstick to be taken, which causes each philospher to be delayed indefinitely
+            because the right is held by a neighbor 
+
+    Solutions:
+        - allow at most i-1 (in this example 5, so 4) philosphers to be waiting waiting at the same time while one eats 
+        - allow a philospher to pick up both chopsticks only if they are both avaliable (at the same time)
+
+        - **** asymmetic solution:
+            1. an off numbers philospher picks up the left chopstick before the right 
+            2. an even numbered philopsher picks up the right chopstck before the left
+
+Semaphore (POSIX)
+--
+    - there are two versions: named and unnamed semaphores 
+    
+    - named are used by unrelated processes, the idea being that threads of processes are designed to work together or share some common 
+    parent process 
+
+    - unnamed are usually more synchronization between related processes, usually stored in memory shared between two related processes 
+
+    POSIX unnamed semaphore: 
+        - creating a semaphore:
+            #include <semaphore.h>
+
+            sem_t sem; 
+
+            //create a semaphore and init it to 1;
+            sem_init(&sem, 0, 1);
+
+            - acquire and release semaphore 
+            // acquire the semaphore 
+            sem_wait(&sem);
+
+            /* critical section */
+
+            // release the semaphore 
+            sem_post(&sem);
+
+Exercise:
+
+init: s=1, t=0; // binary semaphore 
+
+Thread 1:
+    wait(s);
+    signal(s);
+    wait(t);
+    signal(t);
+
+Thread 2:
+    wait(s);
+    signal(s);
+    wait(t);
+    signal(t); 
+
+(a) does it deadlock? 
+yes both threads get stuck at line 3
+
+(b) assume counting semaphore: how can this be solved?
+make sure we run wait(t) at different intervals (this would mean moving the wait(t) to the top for example)
+
+Deadlock and Starvation 
+--
+Deadlock 
+    - occurs when a set of processes are permanently waiting on events that can only be triggered by other blcoked processes
+    - no efficient general solution to prevent deadlock 
+
+System Model 
+    - a system consists of resource types, each can have multiple instances 
+        - resource types: R1, R2, ...., Rm 
+            - memory space, CPU cycles, I/O devices 
+        - each resource type Ri has Wi instnaces 
+    
+    - processes request, use, and release resources in a structured manner 
+
+Resource Categories
+--
+- reusable - one process can use this type at a time but does not cause the resource to be depleted 
+    - processors, i/o channels, main and secondary memory, devices, and data structures (files, database, and semaphores)
+
+- consumable - one that can created (produced) and destroyed (consumed) 
+    - interrupts, signals, messages, and information from i/o buffers 
+
+Deadlock scenarios:
+    reusable resource deadlock: processes request in an order that leads to the inability to proceed  
+
+    exmaple: space is avaliable for allocation of 200Kbytes, and this occurs:
+
+    P1:
+    ...
+    Request 80 Kbytes 
+    ...
+    Request 60 Kbytes 
+
+    P2:
+    ...
+    Request 70 Kbytes 
+    ...
+    Request 80 Kbytes 
+
+    Deadlock due to memory ***possible with virtual memory*** 
+
+    Consume Resources Deadlock: Occurs when two processes try to send and recieve messages (but they end up blocking each other)
+
+    P1:
+    ...
+    Recieve(P2)
+    ...
+    Send(P2, M1)
+
+    P2:
+    ...
+    Recieve(P1)
+    ...
+    Send(P1, M2)
+
+    - deadlock occurs if the recieved is blocking (the receiving process is blocked until the messages are recieved)
+    - not typically common situation, sometimes takes long periods of time (up to years) before a deadlock occurs 
+
+Resource-Allocation Graphs
+--
+- graph-based model that shows requests of processes and resouce dependencies
+    - each process and resource is represented by a node 
+    - graph edge directed from a process to a resource but not yet granted 
+    - within resource node, a dot is shown for each of that resource 
+
+- request edge (Pi -> Rj): process requests a resource 
+- assign edge (Rj -> Pi): resource is allocated to a process  
+
+Circular Wait (cycle) - no process (t1, t2, t3) can proceed, each process is waiting on a resource that is held by another process 
+
+    Mitigation:
+        - process termination (terminating t3 to allow t2 to use R3)
+        - timeout 
+        - suspending 
+
+Resource-Allocation with a cycle but no deadlock 
+--
+- if graph contains no cycles -> no deadlock
+- if graph contains a cycle 
+    - if only one instance per resource type, then deadlock 
+    - if several instances per resource type, then possibly deadlock 
+
+Example of Resource-Allocation graph definiton
+--
+assume there are three resource types R1 with 1 instance, R2 with 3 instances, and R3 with 2 instances. There are currently 4 threads/processes 
+called T1, T2, T3, and T4.
+
+- T1 is using one instance of R3, and request one instance from R1
+- T2 is using one instance of R1 and one instance of R2. It is also requesting one instance from R3. 
+- T3 is using one instance from R3 and requesting one instance from R2. 
+- T4 is using two instances of R2 and requesting one instance from R3 
+
+Draw a Resource-Allocation graph and determine if at this snapshot in time is there deadlock? 
+Yes, there is deadlock. Solution terminating at T1
+
+Deadlock Characterization 
+--
+Four conditions for deadlock (that need to be simultaneously active)
+1. mutual exclusion - only one process can use a resource at a time 
+2. hold and wait - a process holds some resource while waiting for others 
+3. no preemption - resources can only be released voluntarily 
+4. circular wait - a circular chain for waiting processes that exists 
+
+Methods for handling deadlock (PAD)
+--
+THere is not really a perfect strategy for handling deadlock 
+
+Three common approaches (PAD):
+- Deadlock Prevention - disallowing one of three necessary conditions for deadlock occurence, or prevent circular wait condition from happening 
+- Deadlock Avoidance - Do not grant a resource request if allocation might lead to deadlock 
+- Deadlock Detection - Grant request when possible, but periodically check for the presence of deadlock and take action to recover 
+
+Deadlock Prevention 
+--
+Two main methods:
+    - indirect - prevent the occurence of one of the necessary conditions 
+    - direct - prevent occurence of circular wait 
+
+conditionas of prevention:
+    - mutual exlusion - cannot always prevent 
+    - hold and wait - requires processes to request all resource at once (inefficent)
+    - no preemption - forces processes to release resources if a request is denied 
+    - circular wait - impose a linear ordering of resources 
+
+Deadlock Avoidance 
+--
+- if a system is in a safe state -> no deadlock 
+- if a system is in a unsafe state -> possibility of deadlock 
+    - avoidance -> tries to ensure the system never ends up in the unsafe state 
+
+Bankers algorithm 
+--
+- checks if granting a resource request keeps the system in a safe state 
+- matrices:
+    - available - resources that are not allocated but can be used for a process 
+    - max - shows the maximum requirements of a process in terms of resource requirements 
+    - allocation - what is currently allocated to a process 
+    - need - allocation requirements that a process needs to complete 
+
+* using these matrices to ensure the system never enters an unsafe state  
+
+Main ideas:
+1. multiple instances of resources 
+2. each process must have a priority maximum claim use 
+3. when a process requests a reosurce, it may have to wait 
+    - waiting until another process completes/releases allocated resources 
+4. when a process gets all its resources it must return them in a finite amount of time 
+    - so that other processes can use them (de-allocation)
+
+Methodology and Data structures of Bankers Algorithm
+--
+- n = number of processes 
+- m = number of resource types 
+
+Available: a vector of length m 
+max: n*m matrix 
+allocation: n*m matrix 
+need: n*m -> Need[i,j]= Max[i,j] - Allocation[i,j] 
+
+Bankers Safety Algorithm 
+--
+1. init 
+    Work = available 
+    Marked[i] = false for i = 0, 1, ..., n-1
+    Generate NEED MATRIX for each process using max and current allocation 
+
+2. Check for process' (in order of Process ID) Need <= Work and Marked = false 
+    - if no process that exists where this condition is true, then go to step 4 (completion)
+
+3. Once a process is found to satisfy step 2 condition, you now consider completed and then complete this operation -> Work = Work + Allocation_i
+    - returns resources to available (work) and go back to step 2
+
+4. System is in a safe state (a safe sequence is generated)
+
+Example: 
+5 processes: P0 - P4 
+3 Resouce Types: A (10 instances), B (5 instances), C (7 instances)
+
+Snapshot at time T0:
+
+        Allocation      Max     Available 
+        A B C           A B C   A B C 
+P0      0 1 0           7 5 3   3 3 2 
+P1      2 0 0           3 2 2   
+P3      3 1 1           2 2 2  
+P4      0 0 2           4 3 3     
+
+What is the safe sequence? 
+
+< P1, P3, P0, P3, P4 > -> this one of the many execution orders to achieve a safe state 
+
+< P1, P3, P4, P0, P2 > * using loop method 
+
+What is P1 requests (1, 0, 2)?
+    we check to see what is currently in avalaible, if requests is <= what is in available, we can usually satisfy the request
+
+Deadlock avoidance restrictions
+--
+- the maximum resource requirement for each process must be stated in advance 
+- the process under consideration must be independent; in order which which they execute must be unconstrained by any synchronization requirements
+- there must be a fixed number of resources to allocate 
+- no process may exit while holding resources 
+
+with deadlock, avoidance, the advantage is that the system tests for a safety sequence before finishing execution 
+    -> prevents preemption and rollback of processes 
+    -> a little less restrictive than deadlock prevention 
+
+Deadlock Detection 
+--
+- allows the system to enter deadlock state 
+- Algorithm 
+    - runs at certain intervals 
+        - can be as frequent as every time a resource is requested (or a little less frequent)
+        - considered simple because it typically involves cycles in a resource-allocation graph 
+
+- recovery schemes are used to handle deadlock once it has been detected:
+    - preemption - temporarily taking away resources from processes 
+    - rollback - returning processes to some safe state and restarting 
+    - killing of processes - terminating one or more processes to break deadlock 
+
+Simplified Graph (wait for graph)
+    - the only nodes are processses 
+    - Pi > Pj => Pi waiting for Pj 
+    - it is useful if the allocation graph contains a cycle. if a cycle exists we typically have deadlock state 
+
+    deadlock detection:
+        similar to bankers, so we can solve it like bankers:
+            - difference: can a request be granted without deadlock 
+                - checking requests vs work (available)
+                - if a request is not avalaible we will assume the process is in a deadlock state 
+                - anytime a request is tested, we must "rerun" bankers 
+                - if all request can be satisfied we considered the state of the system a safe state 
+
+Detection-Algorithm Usage
+--
+- when and how often should we use this?
+    - how often does deadlock occur?
+        - if deadlocks are rare, alogorithm may run more infrequently 
+        - if deadlocks are common, may need to run more often 
+    
+    - how many processes will need to be rollbacked (or terminated)?
+        - one for each disjointed cycle (release the process -> suspend/terminated)
+
+Recovery from deadlock 
+--
+- process termination - abort all deadlocked processes or one at a time 
+    - in case of all,  not done simultenously but one process at a time until we get rid of deadlock cycle 
+    - criteria: priority (lowest priority first), resources used, and completion time 
+
+-resource preemption 
+    - select victim process and rollback to a safe state 
+        - make sure to minimize cost 
+            - cost associated typically with the number of resources the deadlocked process is holding and amount of time a process has been running 
+        - prevent starvation by limiting how often a process is preempted 
+
+Deadlock strategies
+--  
+- deadlock precention strategies are very conservative 
+    -solve the problem of deadlock by limiting access to resource and by imposing restrictions on 
+    - deaclock detection strategies are he opposite 
+        - do no limit resources access or process actions
+
+Integrated Deadlock
+--
+the different strats for resource types:
+    - swappaple space: prevent deadlocks by allocating all required resources at once 

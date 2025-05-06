@@ -1,0 +1,21 @@
+Lecture #7 - Memory Management - Main Memory 
+
+Main Memory 
+--
+- programs must be loaded into main memory for execution 
+- efficient memory allocation -> critical for multiprogramming 
+- registers, main memory, and cache -> impact system performance 
+        - registers access is done in one CPU block (or less)
+        - main memory can take many cycles, causing stalls 
+        - cache sits between main memory and cpu registers (L0/L1 caches)
+
+Memory Management Requirements 
+--
+Relocation : processes must move in memory without restrictions 
+    - active processes need to be swapped in and out of main memory in order to maximize our processor utilization 
+
+Protection: Each process should only access its allocated memory 
+    - each process should be protected against unwanted interference by other processes, whether accidental or intentional
+    - done by using a pair of base and limit registers -> 
+
+CPU will constanly check to make sure an address genereated between the base and limit registers 
