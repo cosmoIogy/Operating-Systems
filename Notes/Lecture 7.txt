@@ -19,3 +19,82 @@ Protection: Each process should only access its allocated memory
     - done by using a pair of base and limit registers -> 
 
 CPU will constanly check to make sure an address genereated between the base and limit registers 
+
+Sharing: allow multiple processes to access shared memory safely
+    - sharing parts of a program in a shared address space can be useful, rather than every thread/process having a copy of that program 
+    - memory management unit (MMU) must allow controlled access to shared areas of memory without compromising protection 
+
+Logical Organization: memory should support modular programmming 
+    - main memory in a computer is organized in a linear structure (one dimensional) of address space; consisting of bytes of words 
+    - our program are modules: 
+        - modules can be written and compiled independent 
+        - there is slight overhead; different degree of protection (read only, execute only) can be given to different modules 
+
+Physical Organization: Officent movement between main memory and secondary memory 
+    - computer memory is organized into two levels: main and secondary 
+    - main memory provides fast access at relatively high costs. very volatile (not permanenet)
+        - holds parts of programs (parts that need to be executed)
+    
+    - secondary memory is typically slower and cheaper than main memory (and non-volitale)
+        - has larger capacity 
+        - provides long-term storage 
+        - hold entire programs 
+
+Memory-Management Techinques 
+--
+fixed paritioning - divides memory into fixed-size portions 
+
+paging - divides memory into fixed-frames and processes into pages 
+    - eliminates external fragmentation 
+    - leads to smaller internal fragmentation
+
+segementation - divides process into variable-lenth segments 
+    - no internal fragmentation but better memory utlization 
+    - leads to external fragmentation
+
+Fixed paritioning
+--
+equal and unequal-sized paritions lead to internal fragmentation 
+
+disadvantages:
+    - a program may be to big 
+        - program needs to implement the concept of overlaying 
+
+    - main memory utilization becomes extremely inefficient
+        - any program, regardless of size, occupies entire paritions 
+            - known as internal fragmentation 
+    
+    - the number of partitions specified at system generation time, which limits the number of active process in the system 
+
+    - small jobs will not utilize parition space efficiently 
+
+Dynamic Paritioning 
+--
+- partioning are of variable length 
+- when a process is brought into main memory, allocates exactly as much memory as rquired and no more 
+ 
+ - what is happening with the empty space?
+    - main memory get more and more fragmented which leads to memory utilization declining 
+
+Compacting - Solution to external fragmentation 
+--
+- OS shifts processses so they are contiguous 
+- free memory ends up together in one block 
+- overhead: cpu time consumed or wasted 
+
+since this has a hefty cost, there needs to be an efficient way to plug the holes (better in terms of time)
+
+Memory allocation algorithms
+--
+- best-fit: choose the block that is closest in size to our process request 
+- first-fit: begins a scan process (at the beginning of memory), that tries to find the first avalaible block that can fit a process 
+- next-fit: begins a scan at last allocated location, and stores it if there enough space 
+
+- first fit is lways known as fastest and best (also the simplest to implement)
+- next fit is sligthly worse than first fit due to having to keep track of last allocated position 
+- best fit is usually the worst performer. it requires looking through entire memory space and finding the closest size in terms of request size.
+attempts to leave behind the msallest fragments of free space 
+
+exercise 1
+--
+given six memory partitions of 100 mb, 170 mb, 40 mb, 
